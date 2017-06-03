@@ -34,6 +34,7 @@ struct GWEN_GUI_CPROGRESS {
   int aborted;
   int shown;
   time_t startTime;
+  GWEN_LOGGER_LEVEL logLevel;
 };
 
 

@@ -31,6 +31,8 @@ GWEN_GUI_CPROGRESS *GWEN_Gui_CProgress_new(GWEN_GUI *gui,
     const char *text,
     uint64_t total) {
   GWEN_GUI_CPROGRESS *cp;
+  const char *s;
+  GWEN_LOGGER_LEVEL ll=GWEN_LoggerLevel_Debug;
 
   GWEN_NEW_OBJECT(GWEN_GUI_CPROGRESS, cp);
   GWEN_LIST_INIT(GWEN_GUI_CPROGRESS, cp);
@@ -44,6 +46,14 @@ GWEN_GUI_CPROGRESS *GWEN_Gui_CProgress_new(GWEN_GUI *gui,
     cp->text=strdup(text);
   cp->total=total;
   cp->logBuf=GWEN_Buffer_new(0, 256, 0, 1);
+
+  s=getenv("GWEN_CONSOLE_LOGLEVEL");
+  if (s) {
+    ll=GWEN_Logger_Name2Level(s);
+    if (ll==GWEN_LoggerLevel_Unknown)
+      ll=GWEN_LoggerLevel_Warning;
+  }
+  cp->logLevel=ll;
 
   if (!(cp->flags & GWEN_GUI_PROGRESS_DELAY)) {
     GWEN_Gui_StdPrintf(gui, stderr, "===== %s =====\n", title);
@@ -221,7 +231,8 @@ int GWEN_Gui_CProgress_Log(GWEN_GUI_CPROGRESS *cp,
       /* Just in case the buffer has been reallocated */
       t=GWEN_Buffer_GetStart(tbuf);
     }
-    GWEN_Gui_StdPrintf(cp->gui, stderr, "%s", t);
+    if (level<=cp->logLevel)
+      GWEN_Gui_StdPrintf(cp->gui, stderr, "%s", t);
 
     GWEN_Buffer_AppendString(cp->logBuf, t);
     GWEN_Buffer_free(tbuf);
